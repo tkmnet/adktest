@@ -1,0 +1,66 @@
+import java.text.SimpleDateFormat
+
+def defaultName = name
+
+task backupSrc(type: Zip) {
+    SimpleDateFormat sdf = new SimpleDateFormat('yyyyMMddHHmmss')
+    String date = sdf.format(Calendar.getInstance().getTime())
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    destinationDir = file('backup')//new File(rootDir, 'backup')
+    def newTeamName = 'default'.equalsIgnoreCase(teamName) ? defaultName : teamName;
+    String buildName = newTeamName + '-source-' + date
+    archiveName = buildName + '.zip'
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    into(buildName) {
+        into('src') {
+            from 'src'
+        }
+        into('config') {
+            from 'config'
+        }
+        from 'build.gradle'
+        from 'gradle.properties'
+        from 'tool.gradle'
+    }
+}
+
+def comlibJarPath = 'jar://$MODULE_DIR$/library/rescue/util/comlib.jar!/'
+def comlibSrcPath = 'jar://$MODULE_DIR$/library/rescue/util/sources/comlib-sources.jar!/'
+def adkJarPath = 'jar://$MODULE_DIR$/library/rescue/util/agent-development-kit.jar!/'
+def adkSrcPath = 'jar://$MODULE_DIR$/library/rescue/util/sources/agent-development-kit-sources.jar!/'
+
+idea.module.iml {
+    withXml {
+        it.asNode().component.orderEntry.library.each{
+            def children = it.children()
+            boolean adkLink = false
+            boolean comlibLink = false
+            for(int i = 0; i < children.size(); i++){
+                String nodeName = children.get(i).name()
+                if('CLASSES'.equals(nodeName)){
+                    String name = children.get(i).children().get(0).attribute('url')
+                    if(comlibJarPath.equals(name)){
+                        comlibLink = true
+                    }
+                    else if(adkJarPath.equals(name)){
+                        adkLink = true
+                    }
+                }
+            }
+            if(comlibLink) {
+                for(int i = 0; i < children.size(); i++){
+                    if ('SOURCES'.equals(children.get(i).name())){
+                        children.get(i).appendNode('root', [url: comlibSrcPath])
+                    }
+                }
+            }
+            else if(adkLink) {
+                for(int i = 0; i < children.size(); i++){
+                    if ('SOURCES'.equals(children.get(i).name())){
+                        children.get(i).appendNode('root', [url: adkSrcPath])
+                    }
+                }
+            }
+        }
+    }
+}
