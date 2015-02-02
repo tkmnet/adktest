@@ -99,7 +99,10 @@ public class SampleTacticsFire extends TacticsFire implements RouteSearcherProvi
 						{
                 // if (this.world.getDistance(this.agentID, this.target) <= this.maxDistance)
                 if (this.world.getDistance(this.agentID, this.target) <= this.sightDistance)
-								{ return new ActionExtinguish(this, this.target, this.maxPower); }
+								{
+									this.buildingSelector.remove(this.target);
+									return new ActionExtinguish(this, this.target, this.maxPower);
+								}
 								else
 								{ this.moveTarget(currentTime); }
             }

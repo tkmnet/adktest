@@ -19,6 +19,7 @@ public class SampleBuildingEvent implements MessageBuildingEvent{
     @Override
     public void receivedRadio(MessageBuilding message) {
         this.bsp.getBuildingSelector().add(MessageReflectHelper.reflectedMessage(this.wp.getWorld(), message));
+				System.out.println("Building:" + ((MessageBuilding)message).getBuildingID());
     }
 
     @Override
